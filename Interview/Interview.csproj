@@ -63,10 +63,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IRepository.cs" />
-    <Compile Include="IStoreable.cs" />
+    <Compile Include="Entities\Cars.cs" />
+    <Compile Include="Implemenation\InMemoryRepo.cs" />
+    <Compile Include="Implemenation\DataContext.cs" />
+    <Compile Include="Entities\User.cs" />
+    <Compile Include="Interfaces\IRepository.cs" />
+    <Compile Include="Interfaces\IStoreable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tests.cs" />
+    <Compile Include="Tests\Tests.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
