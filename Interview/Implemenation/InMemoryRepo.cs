@@ -39,12 +39,11 @@ namespace Interview.Implemenation
             if (item == null)
                 throw new ArgumentNullException("item");
 
-            var entities = _context.Entities;
-            var idx = entities.FindIndex(x => x.Id.Equals(item.Id));
+            var idx = _context.Entities.FindIndex(x => x.Id.Equals(item.Id));
             if (idx < 0)
-                entities.Add(item);
+                _context.Entities.Add(item);
             else
-                entities[idx] = item;
+                _context.Entities[idx] = item;
         }
 
         public T FindById(IComparable id)

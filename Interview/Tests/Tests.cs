@@ -7,26 +7,10 @@ using NUnit.Framework;
 
 namespace Interview
 {
-    /// <summary>
-    /// Derived from InMemoryRepo, to gain access to protected property - 'entities'
-    /// Some might call it a 'hack', but I think it`s quite usefull & safe trick
-    /// </summary>
-    public class InMemoryRepoForTests<T> : InMemoryRepo<T> where T : IStoreable
-    {
-        public InMemoryRepoForTests(IDataContext context) : base(context)
-        {
-        }
-
-        public List<T> Entities
-        {
-            get { return _context.Entities.OfType<T>().ToList(); }
-        }
-    }
-
     [TestFixture]
     public class Tests
     {
-        private List<IStoreable> _storedData;
+        //private List<IStoreable> _storedData;
         private IDataContext _context;
         private const int _notExisitingId = -111;
 
@@ -44,21 +28,21 @@ namespace Interview
         [SetUp]
         public void InitializeTest()
         {
-            _storedData = new List<IStoreable>();
-            _storedData.Add(new Car() { Id = 1, ProductionYear = 1900 });
-            _storedData.Add(new Car() { Id = 2, ProductionYear = 2000 });
-            _storedData.Add(new User() { Id = 3, Name = "A" });
-            _storedData.Add(new User() { Id = 4, Name = "B" });
-            _storedData.Add(new User() { Id = 5, Name = "C" });
+            var storedData = new List<IStoreable>();
+            storedData.Add(new Car() { Id = 1, ProductionYear = 1900 });
+            storedData.Add(new Car() { Id = 2, ProductionYear = 2000 });
+            storedData.Add(new User() { Id = 3, Name = "A" });
+            storedData.Add(new User() { Id = 4, Name = "B" });
+            storedData.Add(new User() { Id = 5, Name = "C" });
 
-            _context = new DataContext(_storedData);
+            _context = new DataContext(storedData);
         }
 
         [Test]
         public void All_Cars_returns_only_all_cars_types()
         {
             //arrange
-            var carsRepository = new InMemoryRepoForTests<Car>(_context);
+            var carsRepository = new InMemoryRepo<Car>(_context);
 
             //act
             var resultData = carsRepository.All();
@@ -71,7 +55,7 @@ namespace Interview
         public void All_Users_returns_only_all_users_types()
         {
             //arrange
-            var userRepository = new InMemoryRepoForTests<User>(_context);
+            var userRepository = new InMemoryRepo<User>(_context);
 
             //act
             var resultData = userRepository.All();
@@ -84,7 +68,7 @@ namespace Interview
         public void All_by_IStorable_returns_all_items()
         {
             //arrange
-            var repository = new InMemoryRepoForTests<IStoreable>(_context);
+            var repository = new InMemoryRepo<IStoreable>(_context);
 
             //act
             var resultData = repository.All();
@@ -98,7 +82,7 @@ namespace Interview
         {
             //arrange
             var repository = CreateRepo(item, _context);
-            var deleteElementId = _storedData.OfType<T>().Last().Id;
+            var deleteElementId = _context.Entities.OfType<T>().Last().Id;
             int countBefore = _context.Entities.OfType<T>().Count();
             Console.WriteLine("Removing Id: " + deleteElementId);
 
@@ -106,46 +90,46 @@ namespace Interview
             repository.Delete(deleteElementId);
 
             //asert
-            int countAfter = repository.Entities.Count();
+            int countAfter = _context.Entities.OfType<T>().Count();
             Assert.That(countAfter, Is.EqualTo(--countBefore));
-            Assert.IsNull(repository.Entities.FirstOrDefault(x => x.Id.Equals(deleteElementId)));
+            Assert.IsNull(_context.Entities.FirstOrDefault(x => x.Id.Equals(deleteElementId)));
         }
 
         [Test, TestCaseSource("DifferentTypesNewIds")]
         public void Save_new_entity_should_add_new_element<T>(T newElement) where T : IStoreable
         {
             //arrange
-            var repository = new InMemoryRepoForTests<IStoreable>(_context);
+            var repository = new InMemoryRepo<IStoreable>(_context);
             int countBefore = _context.Entities.Count();
 
             //act
             repository.Save(newElement);
 
             //assert
-            int countAfter = repository.Entities.Count();
+            int countAfter = _context.Entities.Count();
             Assert.That(countAfter, Is.EqualTo(++countBefore));
-            Assert.IsNotNull(repository.Entities.FirstOrDefault(x => x.Id.Equals(newElement.Id)));
+            Assert.IsNotNull(_context.Entities.FirstOrDefault(x => x.Id.Equals(newElement.Id)));
         }
 
         [Test]
         public void Save_existing_entity_should_update_previous_one()
         {
             //arrange
-            var userRepository = new InMemoryRepoForTests<User>(_context);
+            var userRepository = new InMemoryRepo<User>(_context);
             var newElementButSameId = new User() { Id = 3, Name = "AAA" };
 
             //act
             userRepository.Save(newElementButSameId);
 
             //assert
-            Assert.AreEqual("AAA", userRepository.Entities[0].Name);
+            Assert.AreEqual("AAA", ((User)_context.Entities[2]).Name);
         }
 
         [Test]
         public void FindById_that_exists_should_return_element()
         {
             //arrange
-            var repository = new InMemoryRepoForTests<User>(_context);
+            var repository = new InMemoryRepo<User>(_context);
 
             //act
             var result = repository.FindById(4);
@@ -158,8 +142,8 @@ namespace Interview
         public void FindById_that_exists_but_type_is_diffeent_should_return_null()
         {
             //arrange
-            var idOfCar = ((Car)_storedData[0]).Id;
-            var userRepository = new InMemoryRepoForTests<User>(_context);
+            var idOfCar = ((Car)_context.Entities[0]).Id;
+            var userRepository = new InMemoryRepo<User>(_context);
 
             //act
             var result = userRepository.FindById(idOfCar);
@@ -172,7 +156,7 @@ namespace Interview
         public void FindById_that_not_exists_should_return_null()
         {
             //arrange
-            var repository = new InMemoryRepoForTests<User>(_context);
+            var repository = new InMemoryRepo<User>(_context);
 
             //act
             var result = repository.FindById(_notExisitingId);
@@ -185,7 +169,7 @@ namespace Interview
         public void Delete_not_existing_element_should_throw_exception()
         {
             //arrange
-            var repository = new InMemoryRepoForTests<User>(_context);
+            var repository = new InMemoryRepo<User>(_context);
 
             Assert.Throws<InvalidOperationException>(() =>
                 repository.Delete(_notExisitingId)
@@ -195,7 +179,7 @@ namespace Interview
         [Test]
         public void FindById_throws_exception_if_id_is_null()
         {
-            var repository = new InMemoryRepoForTests<User>(_context);
+            var repository = new InMemoryRepo<User>(_context);
 
             Assert.Throws<ArgumentNullException>(() =>
                 repository.FindById(null)
@@ -204,7 +188,7 @@ namespace Interview
         [Test]
         public void Save_throws_exception_if_item_is_null()
         {
-            var repository = new InMemoryRepoForTests<User>(_context);
+            var repository = new InMemoryRepo<User>(_context);
 
             Assert.Throws<ArgumentNullException>(() =>
                 repository.Save(null)
@@ -213,7 +197,7 @@ namespace Interview
         [Test]
         public void Delete_throws_exception_if_id_is_null()
         {
-            var repository = new InMemoryRepoForTests<User>(_context);
+            var repository = new InMemoryRepo<User>(_context);
 
             Assert.Throws<ArgumentNullException>(() =>
                 repository.Delete(null)
@@ -223,9 +207,9 @@ namespace Interview
         /// <summary>
         /// Create generic repository at runtime
         /// </summary>
-        private static InMemoryRepoForTests<T> CreateRepo<T>(T type, IDataContext ctx) where T : IStoreable
+        private static InMemoryRepo<T> CreateRepo<T>(T type, IDataContext ctx) where T : IStoreable
         {
-            return (InMemoryRepoForTests<T>)Activator.CreateInstance(typeof(InMemoryRepoForTests<T>), new object[] { ctx });
+            return (InMemoryRepo<T>)Activator.CreateInstance(typeof(InMemoryRepo<T>), new object[] { ctx });
         }
     }
 }
