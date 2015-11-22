@@ -7,37 +7,30 @@ namespace Interview.Implemenation
 {
     public class InMemoryRepo<T> : IRepository<T> where T : IStoreable
     {
-        private List<T> entities;
-        private DataContext context;
+        protected readonly IDataContext _context;
 
-        public InMemoryRepo() : this(null)
+        public InMemoryRepo(IDataContext context)
         {
-        }
-        public InMemoryRepo(IList<T> entities)
-        {
-            //if (context == null)
-            //    throw new ArgumentNullException("context");
+            if (context == null)
+                throw new ArgumentNullException("context");
 
-            //context.Entities = context.Entities.OfType<T>().ToList();
-            //if (entities == null)
-            //    entities = new List<T>();
-            this.entities = entities.ToList();
+            _context = context;
         }
 
         public IEnumerable<T> All()
         {
-            return entities;
+            return _context.Entities.OfType<T>();
         }
 
         public void Delete(IComparable id)
         {
             var element = FindById(id);
             if (element != null)
-                entities.Remove(element);
+                _context.Entities.Remove(element);
             else
             {
-                //don`t like to throw exception here, but the contract here is hiding such info.
-                throw new InvalidOperationException("Element was not found");
+                //don`t like it, but in given contract, that`s the only way
+                throw new InvalidOperationException("Delete failed, id not found");
             }
         }
 
@@ -46,6 +39,7 @@ namespace Interview.Implemenation
             if (item == null)
                 throw new ArgumentNullException("item");
 
+            var entities = _context.Entities;
             var idx = entities.FindIndex(x => x.Id.Equals(item.Id));
             if (idx < 0)
                 entities.Add(item);
@@ -58,7 +52,7 @@ namespace Interview.Implemenation
             if (id == null)
                 throw new ArgumentNullException("id");
 
-            return entities.SingleOrDefault(x => x.Id.CompareTo(id) == 0);
+            return _context.Entities.OfType<T>().SingleOrDefault(x => x.Id.CompareTo(id) == 0);
         }
     }
 }

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System;
 
 namespace Interview.Implemenation
 {
-    public class Cars : IStoreable
+    public class Car : IStoreable
     {
         public IComparable Id { get; set; }
-
         public int ProductionYear { get; set; }
     }
 }

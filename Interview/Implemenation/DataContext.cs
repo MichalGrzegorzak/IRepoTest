@@ -5,14 +5,17 @@ using System.Text;
 
 namespace Interview.Implemenation
 {
-    public interface IDataContext
-    {
-        IEnumerable<IStoreable> Entities { get; set; }
-    }
-
     public class DataContext : IDataContext
     {
-        public IEnumerable<IStoreable> Entities { get; set; }
+        public List<IStoreable> Entities { get; set; }
+
+        public DataContext()
+        {}
+
+        public DataContext(List<IStoreable> entities)
+        {
+            Entities = entities;
+        }
     }
 
 }
