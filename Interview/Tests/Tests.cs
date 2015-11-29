@@ -82,17 +82,17 @@ namespace Interview
         {
             //arrange
             var repository = CreateRepo(item, _context);
-            var deleteElementId = _context.Entities.OfType<T>().Last().Id;
-            int countBefore = _context.Entities.OfType<T>().Count();
+            var deleteElementId = _context.Entities.Values.OfType<T>().Last().Id;
+            int countBefore = _context.Entities.Values.OfType<T>().Count();
             Console.WriteLine("Removing Id: " + deleteElementId);
 
             //act
             repository.Delete(deleteElementId);
 
             //asert
-            int countAfter = _context.Entities.OfType<T>().Count();
+            int countAfter = _context.Entities.Values.OfType<T>().Count();
             Assert.That(countAfter, Is.EqualTo(--countBefore));
-            Assert.IsNull(_context.Entities.FirstOrDefault(x => x.Id.Equals(deleteElementId)));
+            Assert.IsNull(_context.Entities.Keys.FirstOrDefault(x => x.Equals(deleteElementId)));
         }
 
         [Test, TestCaseSource("DifferentTypesNewIds")]
@@ -108,7 +108,7 @@ namespace Interview
             //assert
             int countAfter = _context.Entities.Count();
             Assert.That(countAfter, Is.EqualTo(++countBefore));
-            Assert.IsNotNull(_context.Entities.FirstOrDefault(x => x.Id.Equals(newElement.Id)));
+            Assert.IsNotNull(_context.Entities.FirstOrDefault(x => x.Key.Equals(newElement.Id)));
         }
 
         [Test]
@@ -122,7 +122,7 @@ namespace Interview
             userRepository.Save(newElementButSameId);
 
             //assert
-            Assert.AreEqual("AAA", ((User)_context.Entities[2]).Name);
+            Assert.AreEqual("AAA", (_context.Entities[3] as User).Name);
         }
 
         [Test]
@@ -142,7 +142,7 @@ namespace Interview
         public void FindById_that_exists_but_type_is_diffeent_should_return_null()
         {
             //arrange
-            var idOfCar = ((Car)_context.Entities[0]).Id;
+            var idOfCar = ((Car)_context.Entities[1]).Id;
             var userRepository = new InMemoryRepo<User>(_context);
 
             //act

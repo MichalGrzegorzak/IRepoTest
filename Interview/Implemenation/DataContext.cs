@@ -7,14 +7,22 @@ namespace Interview.Implemenation
 {
     public class DataContext : IDataContext
     {
-        public List<IStoreable> Entities { get; set; }
+        public Dictionary<IComparable, IStoreable> Entities { get; set; }
 
         public DataContext()
         {}
 
-        public DataContext(List<IStoreable> entities)
+        public DataContext(Dictionary<IComparable, IStoreable> entities)
         {
             Entities = entities;
+        }
+        public DataContext(List<IStoreable> entities)
+        {
+            Entities = new Dictionary<IComparable, IStoreable>();
+            foreach (IStoreable entity in entities)
+            {
+                Entities.Add(entity.Id, entity);
+            }
         }
     }
 
